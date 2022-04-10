@@ -1,0 +1,5 @@
+El gran defeco de dfplayer es que se debe copiar uno a uno las
+canciones en la sd dado que no reconoce los nombre de archivos
+para poder reproducirlos, esto es que el primer archivo copiado
+sera el que se reproduza al poner play 1
+
