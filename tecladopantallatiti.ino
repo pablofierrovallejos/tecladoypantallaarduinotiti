@@ -49,9 +49,13 @@ void calculaSuma();
 void getInfoPlayer();
 int getUltimaCancion();
 void cargaOperando(int op);
-void playNumerosConvertido(int numero);
+void playNumerosConvertido(int numero, boolean escribeout);
 void escribePalabraRandom();
-
+void setTeclaActual(String skeynow);
+void muestraFechaActual(String sfecha);
+void muestraHoraActual(String shora, String smes);
+void blink();
+void evualuaDobleTecla();
 
 //Vcc - Vcc
 //Gnd - Gnd
@@ -143,12 +147,17 @@ boolean Alarma1 = true;
 boolean Alarma2 = true;
 boolean Alarma3 = true;
 boolean Alarma4 = true;
+String  teclaActual = "";
+String  teclaAnterior = "";
+boolean resetdebouncedone = false;
+boolean teclasdireccionesactivas = false;
+boolean letrasmayusculas = true;
 
 void setup() {
   //Timer1.initialize(5000000);         // Dispara cada 1 segundo reloj
   //Timer1.attachInterrupt(mainTime);   // Activa la interrupcion y la asocia a ISR_Blink
   //Timer1.stop();
-  attachInterrupt(digitalPinToInterrupt(2), blink, RISING);  // Interrupcion tecla STOP para romper el ciclo de la hora
+  
 
   //Esto es para que la pantalla se vaya a blanco y no quede encendida mientras se inicializan las bibliotecas lo que produce exceso de corriente.  
   pinMode(53, OUTPUT);    
@@ -162,7 +171,9 @@ void setup() {
   
   //       CS       DIN                    CLK     
   //MEGA   SS:53    MOSI:51    MISO:50     SCK:52
-
+  
+   attachInterrupt(digitalPinToInterrupt(2), blink, RISING);  // Interrupcion tecla STOP para romper el ciclo de la hora
+   
    totletras = 0;
 
    setearPantalla();
@@ -195,6 +206,7 @@ void setup() {
 
    dibujaBienvenida();
    InicializaArregloPalabras(2); //Inicializa vector con lenguaje español
+   mainTime();
 }
 
 void loop() {
@@ -203,16 +215,16 @@ void loop() {
           primerCiclo = false;
         }
         // Check if  button is pressed
-        if (button1.wasPressed())  {    Serial.println(F("9 was pressed"));  resetScreenCondicional(); escribeLienzo('9',wait);  if(esEspaniol){  myDFPlayer.play(451) ; }else{  myDFPlayer.play(162);}  cargaOperando(9);} 
-        if (button2.wasPressed())  {    Serial.println(F("8 was pressed"));  resetScreenCondicional(); escribeLienzo('8',wait);  if(esEspaniol){  myDFPlayer.play(450) ; }else{  myDFPlayer.play(161);}  cargaOperando(8);} 
-        if (button3.wasPressed())  {    Serial.println(F("7 was pressed"));  resetScreenCondicional(); escribeLienzo('7',wait);  if(esEspaniol){  myDFPlayer.play(449) ; }else{  myDFPlayer.play(160);}  cargaOperando(7);}  
-        if (button4.wasPressed())  {    Serial.println(F("6 was pressed"));  resetScreenCondicional(); escribeLienzo('6',wait);  if(esEspaniol){  myDFPlayer.play(448) ; }else{  myDFPlayer.play(159);}  cargaOperando(6);} 
-        if (button5.wasPressed())  {    Serial.println(F("5 was pressed"));  resetScreenCondicional(); escribeLienzo('5',wait);  if(esEspaniol){  myDFPlayer.play(447) ; }else{  myDFPlayer.play(158);}  cargaOperando(5);} 
-        if (button9.wasPressed())  {    Serial.println(F("4 was pressed"));  resetScreenCondicional(); escribeLienzo('4',wait);  if(esEspaniol){  myDFPlayer.play(446) ; }else{  myDFPlayer.play(157);}  cargaOperando(4);} 
-        if (button10.wasPressed()) {    Serial.println(F("3 was pressed"));  resetScreenCondicional(); escribeLienzo('3',wait);  if(esEspaniol){  myDFPlayer.play(445) ; }else{  myDFPlayer.play(156);}  cargaOperando(3);} 
-        if (button11.wasPressed()) {    Serial.println(F("2 was pressed"));  resetScreenCondicional(); escribeLienzo('2',wait);  if(esEspaniol){  myDFPlayer.play(444) ; }else{  myDFPlayer.play(155);}  cargaOperando(2);} 
-        if (button12.wasPressed()) {    Serial.println(F("1 was pressed"));  resetScreenCondicional(); escribeLienzo('1',wait);  if(esEspaniol){  myDFPlayer.play(443) ; }else{  myDFPlayer.play(154);}  cargaOperando(1);} 
-        if (button13.wasPressed()) {    Serial.println(F("0 was pressed"));  resetScreenCondicional(); escribeLienzo('0',wait);  if(esEspaniol){  myDFPlayer.play(442) ; }else{  myDFPlayer.play(456);}  cargaOperando(0);} 
+        if (button1.wasPressed())  {    Serial.println(F("9 was pressed"));  resetScreenCondicional(); escribeLienzo('9',wait);  if(esEspaniol){  myDFPlayer.play(451) ; }else{  myDFPlayer.play(162);}  cargaOperando(9); setTeclaActual("9"); } 
+        if (button2.wasPressed())  {    Serial.println(F("8 was pressed"));  resetScreenCondicional(); escribeLienzo('8',wait);  if(esEspaniol){  myDFPlayer.play(450) ; }else{  myDFPlayer.play(161);}  cargaOperando(8); setTeclaActual("8"); } 
+        if (button3.wasPressed())  {    Serial.println(F("7 was pressed"));  resetScreenCondicional(); escribeLienzo('7',wait);  if(esEspaniol){  myDFPlayer.play(449) ; }else{  myDFPlayer.play(160);}  cargaOperando(7); setTeclaActual("7"); }  
+        if (button4.wasPressed())  {    Serial.println(F("6 was pressed"));  resetScreenCondicional(); escribeLienzo('6',wait);  if(esEspaniol){  myDFPlayer.play(448) ; }else{  myDFPlayer.play(159);}  cargaOperando(6); setTeclaActual("6"); } 
+        if (button5.wasPressed())  {    Serial.println(F("5 was pressed"));  resetScreenCondicional(); escribeLienzo('5',wait);  if(esEspaniol){  myDFPlayer.play(447) ; }else{  myDFPlayer.play(158);}  cargaOperando(5); setTeclaActual("5"); } 
+        if (button9.wasPressed())  {    Serial.println(F("4 was pressed"));  resetScreenCondicional(); escribeLienzo('4',wait);  if(esEspaniol){  myDFPlayer.play(446) ; }else{  myDFPlayer.play(157);}  cargaOperando(4); setTeclaActual("4"); } 
+        if (button10.wasPressed()) {    Serial.println(F("3 was pressed"));  resetScreenCondicional(); escribeLienzo('3',wait);  if(esEspaniol){  myDFPlayer.play(445) ; }else{  myDFPlayer.play(156);}  cargaOperando(3); setTeclaActual("3"); } 
+        if (button11.wasPressed()) {    Serial.println(F("2 was pressed"));  resetScreenCondicional(); escribeLienzo('2',wait);  if(esEspaniol){  myDFPlayer.play(444) ; }else{  myDFPlayer.play(155);}  cargaOperando(2); setTeclaActual("2"); } 
+        if (button12.wasPressed()) {    Serial.println(F("1 was pressed"));  resetScreenCondicional(); escribeLienzo('1',wait);  if(esEspaniol){  myDFPlayer.play(443) ; }else{  myDFPlayer.play(154);}  cargaOperando(1); setTeclaActual("1"); } 
+        if (button13.wasPressed()) {    Serial.println(F("0 was pressed"));  resetScreenCondicional(); escribeLienzo('0',wait);  if(esEspaniol){  myDFPlayer.play(442) ; }else{  myDFPlayer.play(456);}  cargaOperando(0); setTeclaActual("0"); } 
         if (button50.wasPressed()) {    Serial.println(F("+ was pressed"));  resetScreenCondicional(); 
                                                if(sumando1==0){
                                                       int tmp = 0;
@@ -222,14 +234,14 @@ void loop() {
                                                            myDFPlayer.play(454); 
                                                            delay(1000);
                                                            tmp =  countmas * -1;
-                                                           playNumerosConvertido(tmp);
+                                                           playNumerosConvertido(tmp,true);
                                                       }else{
-                                                          playNumerosConvertido(countmas);
+                                                          playNumerosConvertido(countmas,true);
                                                       }  
                                                }else{
                                                       escribeLienzo('+',wait);  myDFPlayer.play(453) ; operador = '+'; 
                                                }   
-        }
+        setTeclaActual("+");}
         if (button51.wasPressed()) {    Serial.println(F("- was pressed"));  resetScreenCondicional(); 
                                                if(sumando1==0){
                                                       int tmp = 0;
@@ -239,15 +251,15 @@ void loop() {
                                                            myDFPlayer.play(454); 
                                                            delay(1000);
                                                            tmp =  countmas * -1;
-                                                           playNumerosConvertido(tmp);
+                                                           playNumerosConvertido(tmp,true);
                                                       }else{
-                                                          playNumerosConvertido(countmas);
+                                                          playNumerosConvertido(countmas,true);
                                                       }  
                                                }else{
                                                       escribeLienzo('-',wait);  myDFPlayer.play(454) ; operador = '-';
                                                }
-        }                                        
-        if (button52.wasPressed()) {    Serial.println(F("= was pressed"));  resetScreenCondicional(); escribeLienzo('=',wait);  myDFPlayer.play(455) ; delay(1000); calculaSuma();}
+        setTeclaActual("-");}                                        
+        if (button52.wasPressed()) {    Serial.println(F("= was pressed"));  resetScreenCondicional(); escribeLienzo('=',wait);  myDFPlayer.play(455) ; delay(1000); calculaSuma(); setTeclaActual("=");}
 
         int indxAbc = 0;
         if (esEspaniol==true){
@@ -255,49 +267,61 @@ void loop() {
         }else {
             indxAbc =  primeraLetraENG;
         }
-        if (button14.wasPressed()) {    Serial.println(F("Z was pressed"));  resetScreenCondicional(); escribeLienzo('Z',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+26);}else{  myDFPlayer.play(indxAbc+25);} } 
-        if (button15.wasPressed()) {    Serial.println(F("Y was pressed"));  resetScreenCondicional(); escribeLienzo('Y',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+25);}else{  myDFPlayer.play(indxAbc+24);} } 
-        if (button16.wasPressed()) {    Serial.println(F("X was pressed"));  resetScreenCondicional(); escribeLienzo('X',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+24);}else{  myDFPlayer.play(indxAbc+23);} } 
-        if (button17.wasPressed()) {    Serial.println(F("W was pressed"));  resetScreenCondicional(); escribeLienzo('W',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+23);}else{  myDFPlayer.play(indxAbc+22);} } 
-        if (button18.wasPressed()) {    Serial.println(F("V was pressed"));  resetScreenCondicional(); escribeLienzo('V',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+22);}else{  myDFPlayer.play(indxAbc+21);} } 
-        if (button19.wasPressed()) {    Serial.println(F("U was pressed"));  resetScreenCondicional(); escribeLienzo('U',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+21);}else{  myDFPlayer.play(indxAbc+20);} } 
-        if (button20.wasPressed()) {    Serial.println(F("T was pressed"));  resetScreenCondicional(); escribeLienzo('T',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+20);}else{  myDFPlayer.play(indxAbc+19);} } 
-        if (button21.wasPressed()) {    Serial.println(F("S was pressed"));  resetScreenCondicional(); escribeLienzo('S',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+19);}else{  myDFPlayer.play(indxAbc+18);} } 
-        if (button22.wasPressed()) {    Serial.println(F("R was pressed"));  resetScreenCondicional(); escribeLienzo('R',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+18);}else{  myDFPlayer.play(indxAbc+17);} } 
-        if (button23.wasPressed()) {    Serial.println(F("Q was pressed"));  resetScreenCondicional(); escribeLienzo('Q',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+17);}else{  myDFPlayer.play(indxAbc+16);} } 
-        if (button24.wasPressed()) {    Serial.println(F("P was pressed"));  resetScreenCondicional(); escribeLienzo('P',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+16);}else{  myDFPlayer.play(indxAbc+15);} } 
-        if (button25.wasPressed()) {    Serial.println(F("O was pressed"));  resetScreenCondicional(); escribeLienzo('O',wait); if(esEspaniol){ myDFPlayer.play(indxAbc+15);}else{  myDFPlayer.play(indxAbc+14);} } 
-        if (button26.wasPressed()) {    Serial.println(F("Ñ was pressed"));  resetScreenCondicional(); escribeLienzo(165,wait); if(esEspaniol){ myDFPlayer.play(15) ;  }  }  
-        if (button27.wasPressed()) {    Serial.println(F("N was pressed"));  resetScreenCondicional(); escribeLienzo('N',wait); myDFPlayer.play(indxAbc+13); } 
-        if (button28.wasPressed()) {    Serial.println(F("M was pressed"));  resetScreenCondicional(); escribeLienzo('M',wait); myDFPlayer.play(indxAbc+12); } 
-        if (button7.wasPressed()) {    Serial.println(F("L was pressed"));  resetScreenCondicional(); escribeLienzo('L',wait); myDFPlayer.play(indxAbc+11); } 
-        if (button37.wasPressed()) {    Serial.println(F("K was pressed"));  resetScreenCondicional(); escribeLienzo('K',wait); myDFPlayer.play(indxAbc+10); } 
-        if (button36.wasPressed()) {    Serial.println(F("J was pressed"));  resetScreenCondicional(); escribeLienzo('J',wait); myDFPlayer.play(indxAbc+9); } 
-        if (button35.wasPressed()) {    Serial.println(F("I was pressed"));  resetScreenCondicional(); escribeLienzo('I',wait); myDFPlayer.play(indxAbc+8); } 
-        if (button39.wasPressed()) {    Serial.println(F("H was pressed"));  resetScreenCondicional(); escribeLienzo('H',wait); myDFPlayer.play(indxAbc+7); } 
-        if (button41.wasPressed()) {    Serial.println(F("G was pressed"));  resetScreenCondicional(); escribeLienzo('G',wait); myDFPlayer.play(indxAbc+6); } 
-        if (button40.wasPressed()) {    Serial.println(F("F was pressed"));  resetScreenCondicional(); escribeLienzo('F',wait); myDFPlayer.play(indxAbc+5); } 
-        if (button34.wasPressed()) {    Serial.println(F("E was pressed"));  resetScreenCondicional(); escribeLienzo('E',wait); myDFPlayer.play(indxAbc+4); } 
-        if (button33.wasPressed()) {    Serial.println(F("D was pressed"));  resetScreenCondicional(); escribeLienzo('D',wait); myDFPlayer.play(indxAbc+3); } 
-        if (button32.wasPressed()) {    Serial.println(F("C was pressed"));  resetScreenCondicional(); escribeLienzo('C',wait); myDFPlayer.play(indxAbc+2); } 
-        if (button31.wasPressed()) {    Serial.println(F("B was pressed"));  resetScreenCondicional(); escribeLienzo('B',wait); myDFPlayer.play(indxAbc+1); } 
+        if (button14.wasPressed()) {    Serial.println(F("Z was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('Z',wait);}else{ escribeLienzo('z',wait);}        if(esEspaniol){ myDFPlayer.play(indxAbc+26);}else{  myDFPlayer.play(indxAbc+25);} setTeclaActual("Z");} 
+        if (button15.wasPressed()) {    Serial.println(F("Y was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('Y',wait);}else{ escribeLienzo('y',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+25);}else{  myDFPlayer.play(indxAbc+24);} setTeclaActual("Y");} 
+        if (button16.wasPressed()) {    Serial.println(F("X was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('X',wait);}else{ escribeLienzo('x',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+24);}else{  myDFPlayer.play(indxAbc+23);} setTeclaActual("X");} 
+        if (button17.wasPressed()) {    Serial.println(F("W was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('W',wait);}else{ escribeLienzo('w',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+23);}else{  myDFPlayer.play(indxAbc+22);} setTeclaActual("W");} 
+        if (button18.wasPressed()) {    Serial.println(F("V was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('V',wait);}else{ escribeLienzo('v',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+22);}else{  myDFPlayer.play(indxAbc+21);} setTeclaActual("V");} 
+        if (button19.wasPressed()) {    Serial.println(F("U was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('U',wait);}else{ escribeLienzo('u',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+21);}else{  myDFPlayer.play(indxAbc+20);} setTeclaActual("U");} 
+        if (button20.wasPressed()) {    Serial.println(F("T was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('T',wait);}else{ escribeLienzo('t',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+20);}else{  myDFPlayer.play(indxAbc+19);} setTeclaActual("T");} 
+        if (button21.wasPressed()) {    Serial.println(F("S was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('S',wait);}else{ escribeLienzo('s',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+19);}else{  myDFPlayer.play(indxAbc+18);} setTeclaActual("S");} 
+        if (button22.wasPressed()) {    Serial.println(F("R was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('R',wait);}else{ escribeLienzo('r',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+18);}else{  myDFPlayer.play(indxAbc+17);} setTeclaActual("R");} 
+        if (button23.wasPressed()) {    Serial.println(F("Q was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('Q',wait);}else{ escribeLienzo('q',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+17);}else{  myDFPlayer.play(indxAbc+16);} setTeclaActual("Q");} 
+        if (button24.wasPressed()) {    Serial.println(F("P was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('P',wait);}else{ escribeLienzo('p',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+16);}else{  myDFPlayer.play(indxAbc+15);} setTeclaActual("P");} 
+        if (button25.wasPressed()) {    Serial.println(F("O was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('O',wait);}else{ escribeLienzo('o',wait);}         if(esEspaniol){ myDFPlayer.play(indxAbc+15);}else{  myDFPlayer.play(indxAbc+14);} setTeclaActual("O");} 
+        if (button26.wasPressed()) {    Serial.println(F("Ñ was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo(165,wait);}else{ escribeLienzo(164,wait);}         if(esEspaniol){ myDFPlayer.play(15) ;  }  setTeclaActual("Ñ"); }  
+        if (button27.wasPressed()) {    Serial.println(F("N was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('N',wait);}else{ escribeLienzo('n',wait);}         myDFPlayer.play(indxAbc+13); setTeclaActual("N");} 
+        if (button28.wasPressed()) {    Serial.println(F("M was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('M',wait);}else{ escribeLienzo('m',wait);}         myDFPlayer.play(indxAbc+12); setTeclaActual("M");} 
+        if (button7.wasPressed()) {     Serial.println(F("L was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('L',wait);}else{ escribeLienzo('l',wait);}         myDFPlayer.play(indxAbc+11);  setTeclaActual("L");} 
+        if (button37.wasPressed()) {    Serial.println(F("K was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('K',wait);}else{ escribeLienzo('k',wait);}         myDFPlayer.play(indxAbc+10); setTeclaActual("K");} 
+        if (button36.wasPressed()) {    Serial.println(F("J was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('J',wait);}else{ escribeLienzo('j',wait);}         myDFPlayer.play(indxAbc+9);  setTeclaActual("J");} 
+        if (button35.wasPressed()) {    Serial.println(F("I was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('I',wait);}else{ escribeLienzo('i',wait);}         myDFPlayer.play(indxAbc+8);  setTeclaActual("I");} 
+        if (button39.wasPressed()) {    Serial.println(F("H was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('H',wait);}else{ escribeLienzo('h',wait);}         myDFPlayer.play(indxAbc+7);  setTeclaActual("H"); evualuaDobleTecla(); } 
+        if (button41.wasPressed()) {    Serial.println(F("G was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('G',wait);}else{ escribeLienzo('g',wait);}         myDFPlayer.play(indxAbc+6);  setTeclaActual("G");} 
+        if (button40.wasPressed()) {    Serial.println(F("F was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('F',wait);}else{ escribeLienzo('f',wait);}         myDFPlayer.play(indxAbc+5);  setTeclaActual("F");} 
+        if (button34.wasPressed()) {    Serial.println(F("E was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('E',wait);}else{ escribeLienzo('e',wait);}         myDFPlayer.play(indxAbc+4);  setTeclaActual("E");} 
+        if (button33.wasPressed()) {    Serial.println(F("D was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('D',wait);}else{ escribeLienzo('d',wait);}         myDFPlayer.play(indxAbc+3);  setTeclaActual("D");} 
+        if (button32.wasPressed()) {    Serial.println(F("C was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('C',wait);}else{ escribeLienzo('c',wait);}         myDFPlayer.play(indxAbc+2);  setTeclaActual("C");} 
+        if (button31.wasPressed()) {    Serial.println(F("B was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('B',wait);}else{ escribeLienzo('b',wait);}         myDFPlayer.play(indxAbc+1);  setTeclaActual("B");} 
         //if (button30.wasPressed()) {    Serial.println(F("A was pressed"));  resetScreenCondicional(); escribeLienzo('A',wait); myDFPlayer.play(indxAbc); Timer1.start(); } 
-        if (button30.wasPressed()) {    Serial.println(F("A was pressed"));  resetScreenCondicional(); escribeLienzo('A',wait); myDFPlayer.play(indxAbc); } 
-        if (button49.wasPressed()) {    Serial.println(F("Tecla Funciones carita"));   cambiaFuncionTeclado();} //                     escribePalabraRandom(lenguajeFrases);} //Tecla carita feliz de funciones
+        if (button30.wasPressed()) {    Serial.println(F("A was pressed"));  resetScreenCondicional(); if(letrasmayusculas==true){ escribeLienzo('A',wait);}else{ escribeLienzo('a',wait);}         myDFPlayer.play(indxAbc);    setTeclaActual("A");} 
+        if (button49.wasPressed()) {    Serial.println(F("Tecla Funciones carita"));   cambiaFuncionTeclado(); teclasdireccionesactivas = true;} //                     escribePalabraRandom(lenguajeFrases);} //Tecla carita feliz de funciones
         
         if (button8.wasPressed()) {     // ---------------  RETROCEDER  musica y limpiar pantalla ------------------------------
-             escribeLienzo('<',wait);  
-             necesitaResetScreen = true;
-             reproducirAnteriorSonido(); 
+             setTeclaActual("<");
+             evualuaDobleTecla();
+             if (teclasdireccionesactivas  == true ) {
+                   escribeLienzo('<',wait);  
+                   necesitaResetScreen = true;
+                   reproducirAnteriorSonido(); 
+             }       
+
         }
              
         if (button6.wasPressed()) {     // --------------  ADELANTAR  musica y limpiar pantalla -----------------------------------
-             escribeLienzo('>',wait);  
-             necesitaResetScreen = true;
-             reproducirSiguienteSonido();
+             setTeclaActual("<");
+             if (teclasdireccionesactivas  == true ) { 
+                   escribeLienzo('>',wait);  
+                   necesitaResetScreen = true;
+                   reproducirSiguienteSonido(); 
+             }else{
+                  escribeLienzo(' ',wait);     
+                  escribeLienzo(' ',wait);
+             }    
         }   
 
         if (button38.wasPressed()) {     // --------------  DETENER    musica y limpiar pantalla -----------------YA NO FUNCIONA SE VA POR INTERRUPCION------------------
+             muestraHora == true;
              Serial.println(F(".. was pressed"));      
              PosxPF = 0; matrix.fillScreen(LOW);  matrix.write();
              myDFPlayer.pause();
@@ -306,6 +330,8 @@ void loop() {
              sumando2= 0;
              operador=' ';
              countmas= 0;
+             setTeclaActual("");
+             
         }
      
         //if (myDFPlayer.available()) {
@@ -323,12 +349,13 @@ void loop() {
 void  reproducirAnteriorSonido(){
       PosxPF = 0;
        switch (funcionTeclasAvance) {
-                  case 0:  actualFraseESP--;             //CANCIONES EN ESPAÑOL
+                  case 0: actualCancionESP--;             //CANCIONES EN ESPAÑOL
                           if( (primeraCancionESP +  actualCancionESP)  <  primeraCancionESP ) { 
                                actualCancionESP = ultimaCancionESP - primeraCancionESP ;
                           }
                           myDFPlayer.play( primeraCancionESP + actualCancionESP );  //textoFuncion ="2 = Frases en Español";    funcionTeclasAvance = 2; lenguajeFrases = 0;  break;
                           muestrFuncionActualenPantalla(frases[actualCancionESP],5);
+                          break;
                   case 1: 
                          actualCancionENG--;              //CANCIONES EN INGLES
                           if( (primeraCancionENG +  actualCancionENG)  <  primeraCancionENG ) { 
@@ -336,6 +363,7 @@ void  reproducirAnteriorSonido(){
                           }
                           myDFPlayer.play( primeraCancionENG + actualCancionENG );  //textoFuncion ="2 = Frases en Español";    funcionTeclasAvance = 2; lenguajeFrases = 0;  break;
                           muestrFuncionActualenPantalla(frases[actualCancionENG],5);
+                          break;
                   case 2: 
                           actualFraseESP--;              //FRASE EN ESPAÑOL 
                           if( (primeraFraseESP +  actualFraseESP)  <  primeraFraseESP ) { 
@@ -507,11 +535,11 @@ void calculaSuma(){
     int resultado  = 0;
     if( operador == '+'){ 
           resultado = sumando1 + sumando2;
-          playNumerosConvertido(resultado);
+          playNumerosConvertido(resultado,true);
     }
     if( operador == '-'){ 
           resultado = sumando1 - sumando2;
-          playNumerosConvertido(resultado);
+          playNumerosConvertido(resultado,true);
     }
 }
 
@@ -539,7 +567,7 @@ int getUltimaCancion(){
 }   
 
 
-void playNumerosConvertido(int numero){
+void playNumerosConvertido(int numero, boolean escribeout){
     int indxNum;
 
     if (lenguajeFrases == 0 || lenguajeFrases == 2 ){
@@ -553,110 +581,109 @@ void playNumerosConvertido(int numero){
                                   myDFPlayer.play(442);  
                         }else {
                                   myDFPlayer.play(456);  
-                        }
-                        escribeLienzo('0',wait);  break;
-          case 1:       myDFPlayer.play(indxNum);  escribeLienzo('1',wait);  break;
-          case 2:       myDFPlayer.play(indxNum+1);  escribeLienzo('2',wait);  break;   
-          case 3:       myDFPlayer.play(indxNum+2);  escribeLienzo('3',wait);  break;   
-          case 4:       myDFPlayer.play(indxNum+3);  escribeLienzo('4',wait);  break;   
-          case 5:       myDFPlayer.play(indxNum+4);  escribeLienzo('5',wait);  break;   
-          case 6:       myDFPlayer.play(indxNum+5);  escribeLienzo('6',wait);  break;   
-          case 7:       myDFPlayer.play(indxNum+6);  escribeLienzo('7',wait);  break;   
-          case 8:       myDFPlayer.play(indxNum+7);  escribeLienzo('8',wait);  break;   
-          case 9:       myDFPlayer.play(indxNum+8);  escribeLienzo('9',wait);  break;   
-          case 10:      myDFPlayer.play(indxNum+9);  escribeLienzo('1',wait);escribeLienzo('0',wait); break;   
-          case 11:      myDFPlayer.play(indxNum+10);  escribeLienzo('1',wait);escribeLienzo('1',wait);  break;   
-          case 12:      myDFPlayer.play(indxNum+11);  escribeLienzo('1',wait);escribeLienzo('2',wait);  break;   
-          case 13:      myDFPlayer.play(indxNum+12);  escribeLienzo('1',wait);escribeLienzo('3',wait);  break;   
-          case 14:      myDFPlayer.play(indxNum+13);  escribeLienzo('1',wait);escribeLienzo('4',wait);  break;   
-          case 15:      myDFPlayer.play(indxNum+14);  escribeLienzo('1',wait);escribeLienzo('5',wait);  break;   
-          case 16:      myDFPlayer.play(indxNum+15);  escribeLienzo('1',wait);escribeLienzo('6',wait);  break;   
-          case 17:      myDFPlayer.play(indxNum+16);  escribeLienzo('1',wait);escribeLienzo('7',wait);  break;   
-          case 18:      myDFPlayer.play(indxNum+17);  escribeLienzo('1',wait);escribeLienzo('8',wait);  break;   
-          case 19:      myDFPlayer.play(indxNum+18);  escribeLienzo('1',wait);escribeLienzo('9',wait);  break;   
-          case 20:      myDFPlayer.play(indxNum+19);  escribeLienzo('2',wait);escribeLienzo('0',wait);  break;   
-          case 21:      myDFPlayer.play(indxNum+20);  escribeLienzo('2',wait);escribeLienzo('1',wait);  break;   
-          case 22:      myDFPlayer.play(indxNum+21);  escribeLienzo('2',wait);escribeLienzo('2',wait);  break;   
-          case 23:      myDFPlayer.play(indxNum+22);  escribeLienzo('2',wait);escribeLienzo('3',wait);  break;   
-          case 24:      myDFPlayer.play(indxNum+23);  escribeLienzo('2',wait);escribeLienzo('4',wait);  break;   
-          case 25:      myDFPlayer.play(indxNum+24);  escribeLienzo('2',wait);escribeLienzo('5',wait);  break;   
-          case 26:      myDFPlayer.play(indxNum+25);  escribeLienzo('2',wait);escribeLienzo('6',wait);  break;   
-          case 27:      myDFPlayer.play(indxNum+26);  escribeLienzo('2',wait);escribeLienzo('7',wait);  break;   
-          case 28:      myDFPlayer.play(indxNum+27);  escribeLienzo('2',wait);escribeLienzo('8',wait);  break;   
-          case 29:      myDFPlayer.play(indxNum+28);  escribeLienzo('2',wait);escribeLienzo('9',wait);  break;   
-          case 30:      myDFPlayer.play(indxNum+29);  escribeLienzo('3',wait);escribeLienzo('0',wait);  break;   
-          case 31:      myDFPlayer.play(indxNum+30);  escribeLienzo('3',wait);escribeLienzo('1',wait);  break;   
-          case 32:      myDFPlayer.play(indxNum+31);  escribeLienzo('3',wait);escribeLienzo('2',wait);  break;   
-          case 33:      myDFPlayer.play(indxNum+32);  escribeLienzo('3',wait);escribeLienzo('3',wait);  break;   
-          case 34:      myDFPlayer.play(indxNum+33);  escribeLienzo('3',wait);escribeLienzo('4',wait);  break;   
-          case 35:      myDFPlayer.play(indxNum+34);  escribeLienzo('3',wait);escribeLienzo('5',wait);  break;   
-          case 36:      myDFPlayer.play(indxNum+35);  escribeLienzo('3',wait);escribeLienzo('6',wait);  break;   
-          case 37:      myDFPlayer.play(indxNum+36);  escribeLienzo('3',wait);escribeLienzo('7',wait);  break;   
-          case 38:      myDFPlayer.play(indxNum+37);  escribeLienzo('3',wait);escribeLienzo('8',wait);  break;   
-          case 39:      myDFPlayer.play(indxNum+38);  escribeLienzo('3',wait);escribeLienzo('9',wait);  break;   
-          case 40:      myDFPlayer.play(indxNum+39);  escribeLienzo('4',wait);escribeLienzo('0',wait);  break;   
-          case 41:      myDFPlayer.play(indxNum+40);  escribeLienzo('4',wait);escribeLienzo('1',wait);  break;   
-          case 42:      myDFPlayer.play(indxNum+41);  escribeLienzo('4',wait);escribeLienzo('2',wait);  break;   
-          case 43:      myDFPlayer.play(indxNum+42);  escribeLienzo('4',wait);escribeLienzo('3',wait);  break;   
-          case 44:      myDFPlayer.play(indxNum+43);  escribeLienzo('4',wait);escribeLienzo('4',wait);  break;   
-          case 45:      myDFPlayer.play(indxNum+44);  escribeLienzo('4',wait);escribeLienzo('5',wait);  break;   
-          case 46:      myDFPlayer.play(indxNum+45);  escribeLienzo('4',wait);escribeLienzo('6',wait);  break;   
-          case 47:      myDFPlayer.play(indxNum+46);  escribeLienzo('4',wait);escribeLienzo('7',wait);  break;   
-          case 48:      myDFPlayer.play(indxNum+47);  escribeLienzo('4',wait);escribeLienzo('8',wait);  break;   
-          case 49:      myDFPlayer.play(indxNum+48);  escribeLienzo('4',wait);escribeLienzo('9',wait);  break;   
-          case 50:      myDFPlayer.play(indxNum+49);  escribeLienzo('5',wait);escribeLienzo('0',wait);  break;   
-          case 51:      myDFPlayer.play(indxNum+50);  escribeLienzo('5',wait);escribeLienzo('1',wait);  break;   
-          case 52:      myDFPlayer.play(indxNum+51);  escribeLienzo('5',wait);escribeLienzo('2',wait);  break;   
-          case 53:      myDFPlayer.play(indxNum+52);  escribeLienzo('5',wait);escribeLienzo('3',wait);  break;   
-          case 54:      myDFPlayer.play(indxNum+53);  escribeLienzo('5',wait);escribeLienzo('4',wait);  break;   
-          case 55:      myDFPlayer.play(indxNum+54);  escribeLienzo('5',wait);escribeLienzo('5',wait);  break;   
-          case 56:      myDFPlayer.play(indxNum+55);  escribeLienzo('5',wait);escribeLienzo('6',wait);  break;   
-          case 57:      myDFPlayer.play(indxNum+56);  escribeLienzo('5',wait);escribeLienzo('7',wait);  break;   
-          case 58:      myDFPlayer.play(indxNum+57);  escribeLienzo('5',wait);escribeLienzo('8',wait);  break;   
-          case 59:      myDFPlayer.play(indxNum+58);  escribeLienzo('5',wait);escribeLienzo('9',wait);  break;   
-          case 60:      myDFPlayer.play(indxNum+59);  escribeLienzo('6',wait);escribeLienzo('0',wait);  break;   
-          case 61:      myDFPlayer.play(indxNum+60);  escribeLienzo('6',wait);escribeLienzo('1',wait);  break;   
-          case 62:      myDFPlayer.play(indxNum+61);  escribeLienzo('6',wait);escribeLienzo('2',wait);  break;   
-          case 63:      myDFPlayer.play(indxNum+62);  escribeLienzo('6',wait);escribeLienzo('3',wait);  break;   
-          case 64:      myDFPlayer.play(indxNum+63);  escribeLienzo('6',wait);escribeLienzo('4',wait);  break;   
-          case 65:      myDFPlayer.play(indxNum+64);  escribeLienzo('6',wait);escribeLienzo('5',wait);  break;   
-          case 66:      myDFPlayer.play(indxNum+65);  escribeLienzo('6',wait);escribeLienzo('6',wait);  break;   
-          case 67:      myDFPlayer.play(indxNum+66);  escribeLienzo('6',wait);escribeLienzo('7',wait);  break;   
-          case 68:      myDFPlayer.play(indxNum+67);  escribeLienzo('6',wait);escribeLienzo('8',wait);  break;   
-          case 69:      myDFPlayer.play(indxNum+68);  escribeLienzo('6',wait);escribeLienzo('9',wait);  break;   
-          case 70:      myDFPlayer.play(indxNum+69);  escribeLienzo('7',wait);escribeLienzo('0',wait);  break;   
-          case 71:      myDFPlayer.play(indxNum+70);  escribeLienzo('7',wait);escribeLienzo('1',wait);  break;   
-          case 72:      myDFPlayer.play(indxNum+71);  escribeLienzo('7',wait);escribeLienzo('2',wait);  break;   
-          case 73:      myDFPlayer.play(indxNum+72);  escribeLienzo('7',wait);escribeLienzo('3',wait);  break;   
-          case 74:      myDFPlayer.play(indxNum+73);  escribeLienzo('7',wait);escribeLienzo('4',wait);  break;   
-          case 75:      myDFPlayer.play(indxNum+74);  escribeLienzo('7',wait);escribeLienzo('5',wait);  break;   
-          case 76:      myDFPlayer.play(indxNum+75);  escribeLienzo('7',wait);escribeLienzo('6',wait);  break;   
-          case 77:      myDFPlayer.play(indxNum+76);  escribeLienzo('7',wait);escribeLienzo('7',wait);  break;   
-          case 78:      myDFPlayer.play(indxNum+77);  escribeLienzo('7',wait);escribeLienzo('8',wait);  break;   
-          case 79:      myDFPlayer.play(indxNum+78);  escribeLienzo('7',wait);escribeLienzo('9',wait);  break;   
-          case 80:      myDFPlayer.play(indxNum+79);  escribeLienzo('8',wait);escribeLienzo('0',wait);  break;   
-          case 81:      myDFPlayer.play(indxNum+80);  escribeLienzo('8',wait);escribeLienzo('1',wait);  break;   
-          case 82:      myDFPlayer.play(indxNum+81);  escribeLienzo('8',wait);escribeLienzo('2',wait);  break;   
-          case 83:      myDFPlayer.play(indxNum+82);  escribeLienzo('8',wait);escribeLienzo('3',wait);  break;   
-          case 84:      myDFPlayer.play(indxNum+83);  escribeLienzo('8',wait);escribeLienzo('4',wait);  break;   
-          case 85:      myDFPlayer.play(indxNum+84);  escribeLienzo('8',wait);escribeLienzo('5',wait);  break;   
-          case 86:      myDFPlayer.play(indxNum+85);  escribeLienzo('8',wait);escribeLienzo('6',wait);  break;   
-          case 87:      myDFPlayer.play(indxNum+86);  escribeLienzo('8',wait);escribeLienzo('7',wait);  break;   
-          case 88:      myDFPlayer.play(indxNum+87);  escribeLienzo('8',wait);escribeLienzo('8',wait);  break;   
-          case 89:      myDFPlayer.play(indxNum+88);  escribeLienzo('8',wait);escribeLienzo('9',wait);  break;   
-          case 90:      myDFPlayer.play(indxNum+89);  escribeLienzo('9',wait);escribeLienzo('0',wait);  break;   
-          case 91:      myDFPlayer.play(indxNum+90);  escribeLienzo('9',wait);escribeLienzo('1',wait);  break;   
-          case 92:      myDFPlayer.play(indxNum+91);  escribeLienzo('9',wait);escribeLienzo('2',wait);  break;   
-          case 93:      myDFPlayer.play(indxNum+92);  escribeLienzo('9',wait);escribeLienzo('3',wait);  break;   
-          case 94:      myDFPlayer.play(indxNum+93);  escribeLienzo('9',wait);escribeLienzo('4',wait);  break;   
-          case 95:      myDFPlayer.play(indxNum+94);  escribeLienzo('9',wait);escribeLienzo('5',wait);  break;   
-          case 96:      myDFPlayer.play(indxNum+95);  escribeLienzo('9',wait);escribeLienzo('6',wait);  break;   
-          case 97:      myDFPlayer.play(indxNum+96);  escribeLienzo('9',wait);escribeLienzo('7',wait);  break;   
-          case 98:      myDFPlayer.play(indxNum+97);  escribeLienzo('9',wait);escribeLienzo('8',wait);  break;   
-          case 99:      myDFPlayer.play(indxNum+98);  escribeLienzo('9',wait);escribeLienzo('9',wait);  break;   
-          case 100:     myDFPlayer.play(indxNum+99);  escribeLienzo('1',wait);escribeLienzo('0',wait);escribeLienzo('0',wait);  break;   
+                        }if  (escribeout == true){    escribeLienzo('0',wait);   }break;
+          case 1:       myDFPlayer.play(indxNum);    if  (escribeout == true){ escribeLienzo('1',wait);    }break;
+          case 2:       myDFPlayer.play(indxNum+1);  if  (escribeout == true){ escribeLienzo('2',wait);  }break;   
+          case 3:       myDFPlayer.play(indxNum+2);  if  (escribeout == true){ escribeLienzo('3',wait);  }break;   
+          case 4:       myDFPlayer.play(indxNum+3);  if  (escribeout == true){ escribeLienzo('4',wait);  }break;   
+          case 5:       myDFPlayer.play(indxNum+4);  if  (escribeout == true){ escribeLienzo('5',wait);  }break;   
+          case 6:       myDFPlayer.play(indxNum+5);  if  (escribeout == true){ escribeLienzo('6',wait);  }break;   
+          case 7:       myDFPlayer.play(indxNum+6);  if  (escribeout == true){ escribeLienzo('7',wait);  }break;   
+          case 8:       myDFPlayer.play(indxNum+7);  if  (escribeout == true){ escribeLienzo('8',wait);  }break;   
+          case 9:       myDFPlayer.play(indxNum+8);  if  (escribeout == true){ escribeLienzo('9',wait);  }break;   
+          case 10:      myDFPlayer.play(indxNum+9);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('0',wait); }break;   
+          case 11:      myDFPlayer.play(indxNum+10);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('1',wait);  }break;   
+          case 12:      myDFPlayer.play(indxNum+11);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('2',wait); } break;   
+          case 13:      myDFPlayer.play(indxNum+12);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('3',wait); } break;   
+          case 14:      myDFPlayer.play(indxNum+13);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('4',wait); } break;   
+          case 15:      myDFPlayer.play(indxNum+14);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('5',wait); } break;   
+          case 16:      myDFPlayer.play(indxNum+15);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('6',wait); } break;   
+          case 17:      myDFPlayer.play(indxNum+16);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('7',wait); } break;   
+          case 18:      myDFPlayer.play(indxNum+17);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('8',wait); } break;   
+          case 19:      myDFPlayer.play(indxNum+18);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('9',wait); } break;   
+          case 20:      myDFPlayer.play(indxNum+19);  if  (escribeout == true){ escribeLienzo('2',wait);escribeLienzo('0',wait); } break;   
+          case 21:      myDFPlayer.play(indxNum+20);  if  (escribeout == true){ escribeLienzo('2',wait);escribeLienzo('1',wait); } break;   
+          case 22:      myDFPlayer.play(indxNum+21);  if  (escribeout == true){ escribeLienzo('2',wait);escribeLienzo('2',wait); } break;   
+          case 23:      myDFPlayer.play(indxNum+22);  if  (escribeout == true){ escribeLienzo('2',wait);escribeLienzo('3',wait); } break;   
+          case 24:      myDFPlayer.play(indxNum+23);  if  (escribeout == true){ escribeLienzo('2',wait);escribeLienzo('4',wait); } break;   
+          case 25:      myDFPlayer.play(indxNum+24);  if  (escribeout == true){ escribeLienzo('2',wait);escribeLienzo('5',wait); } break;   
+          case 26:      myDFPlayer.play(indxNum+25);  if  (escribeout == true){ escribeLienzo('2',wait);escribeLienzo('6',wait); } break;   
+          case 27:      myDFPlayer.play(indxNum+26);  if  (escribeout == true){ escribeLienzo('2',wait);escribeLienzo('7',wait); } break;   
+          case 28:      myDFPlayer.play(indxNum+27);  if  (escribeout == true){ escribeLienzo('2',wait);escribeLienzo('8',wait); } break;   
+          case 29:      myDFPlayer.play(indxNum+28);  if  (escribeout == true){ escribeLienzo('2',wait);escribeLienzo('9',wait); } break;   
+          case 30:      myDFPlayer.play(indxNum+29);  if  (escribeout == true){ escribeLienzo('3',wait);escribeLienzo('0',wait); } break;   
+          case 31:      myDFPlayer.play(indxNum+30);  if  (escribeout == true){ escribeLienzo('3',wait);escribeLienzo('1',wait); } break;   
+          case 32:      myDFPlayer.play(indxNum+31);  if  (escribeout == true){ escribeLienzo('3',wait);escribeLienzo('2',wait); } break;   
+          case 33:      myDFPlayer.play(indxNum+32);  if  (escribeout == true){ escribeLienzo('3',wait);escribeLienzo('3',wait); } break;   
+          case 34:      myDFPlayer.play(indxNum+33);  if  (escribeout == true){ escribeLienzo('3',wait);escribeLienzo('4',wait); } break;   
+          case 35:      myDFPlayer.play(indxNum+34);  if  (escribeout == true){ escribeLienzo('3',wait);escribeLienzo('5',wait); } break;   
+          case 36:      myDFPlayer.play(indxNum+35);  if  (escribeout == true){ escribeLienzo('3',wait);escribeLienzo('6',wait); } break;   
+          case 37:      myDFPlayer.play(indxNum+36);  if  (escribeout == true){ escribeLienzo('3',wait);escribeLienzo('7',wait); } break;   
+          case 38:      myDFPlayer.play(indxNum+37);  if  (escribeout == true){ escribeLienzo('3',wait);escribeLienzo('8',wait); } break;   
+          case 39:      myDFPlayer.play(indxNum+38);  if  (escribeout == true){ escribeLienzo('3',wait);escribeLienzo('9',wait); } break;   
+          case 40:      myDFPlayer.play(indxNum+39);  if  (escribeout == true){ escribeLienzo('4',wait);escribeLienzo('0',wait); } break;   
+          case 41:      myDFPlayer.play(indxNum+40);  if  (escribeout == true){ escribeLienzo('4',wait);escribeLienzo('1',wait); } break;   
+          case 42:      myDFPlayer.play(indxNum+41);  if  (escribeout == true){ escribeLienzo('4',wait);escribeLienzo('2',wait); } break;   
+          case 43:      myDFPlayer.play(indxNum+42);  if  (escribeout == true){ escribeLienzo('4',wait);escribeLienzo('3',wait); } break;   
+          case 44:      myDFPlayer.play(indxNum+43);  if  (escribeout == true){ escribeLienzo('4',wait);escribeLienzo('4',wait); } break;   
+          case 45:      myDFPlayer.play(indxNum+44);  if  (escribeout == true){ escribeLienzo('4',wait);escribeLienzo('5',wait); } break;   
+          case 46:      myDFPlayer.play(indxNum+45);  if  (escribeout == true){ escribeLienzo('4',wait);escribeLienzo('6',wait); } break;   
+          case 47:      myDFPlayer.play(indxNum+46);  if  (escribeout == true){ escribeLienzo('4',wait);escribeLienzo('7',wait); } break;   
+          case 48:      myDFPlayer.play(indxNum+47);  if  (escribeout == true){ escribeLienzo('4',wait);escribeLienzo('8',wait); } break;   
+          case 49:      myDFPlayer.play(indxNum+48);  if  (escribeout == true){ escribeLienzo('4',wait);escribeLienzo('9',wait); } break;   
+          case 50:      myDFPlayer.play(indxNum+49);  if  (escribeout == true){ escribeLienzo('5',wait);escribeLienzo('0',wait); } break;   
+          case 51:      myDFPlayer.play(indxNum+50);  if  (escribeout == true){ escribeLienzo('5',wait);escribeLienzo('1',wait); } break;   
+          case 52:      myDFPlayer.play(indxNum+51);  if  (escribeout == true){ escribeLienzo('5',wait);escribeLienzo('2',wait); } break;   
+          case 53:      myDFPlayer.play(indxNum+52);  if  (escribeout == true){ escribeLienzo('5',wait);escribeLienzo('3',wait); } break;   
+          case 54:      myDFPlayer.play(indxNum+53);  if  (escribeout == true){ escribeLienzo('5',wait);escribeLienzo('4',wait); } break;   
+          case 55:      myDFPlayer.play(indxNum+54);  if  (escribeout == true){ escribeLienzo('5',wait);escribeLienzo('5',wait); } break;   
+          case 56:      myDFPlayer.play(indxNum+55);  if  (escribeout == true){ escribeLienzo('5',wait);escribeLienzo('6',wait); } break;   
+          case 57:      myDFPlayer.play(indxNum+56);  if  (escribeout == true){ escribeLienzo('5',wait);escribeLienzo('7',wait); } break;   
+          case 58:      myDFPlayer.play(indxNum+57);  if  (escribeout == true){ escribeLienzo('5',wait);escribeLienzo('8',wait); } break;   
+          case 59:      myDFPlayer.play(indxNum+58);  if  (escribeout == true){ escribeLienzo('5',wait);escribeLienzo('9',wait); } break;   
+          case 60:      myDFPlayer.play(indxNum+59);  if  (escribeout == true){ escribeLienzo('6',wait);escribeLienzo('0',wait); } break;   
+          case 61:      myDFPlayer.play(indxNum+60);  if  (escribeout == true){ escribeLienzo('6',wait);escribeLienzo('1',wait); } break;   
+          case 62:      myDFPlayer.play(indxNum+61);  if  (escribeout == true){ escribeLienzo('6',wait);escribeLienzo('2',wait); } break;   
+          case 63:      myDFPlayer.play(indxNum+62);  if  (escribeout == true){ escribeLienzo('6',wait);escribeLienzo('3',wait); } break;   
+          case 64:      myDFPlayer.play(indxNum+63);  if  (escribeout == true){ escribeLienzo('6',wait);escribeLienzo('4',wait); } break;   
+          case 65:      myDFPlayer.play(indxNum+64);  if  (escribeout == true){ escribeLienzo('6',wait);escribeLienzo('5',wait); } break;   
+          case 66:      myDFPlayer.play(indxNum+65);  if  (escribeout == true){ escribeLienzo('6',wait);escribeLienzo('6',wait); } break;   
+          case 67:      myDFPlayer.play(indxNum+66);  if  (escribeout == true){ escribeLienzo('6',wait);escribeLienzo('7',wait); } break;   
+          case 68:      myDFPlayer.play(indxNum+67);  if  (escribeout == true){ escribeLienzo('6',wait);escribeLienzo('8',wait); } break;   
+          case 69:      myDFPlayer.play(indxNum+68);  if  (escribeout == true){ escribeLienzo('6',wait);escribeLienzo('9',wait); } break;   
+          case 70:      myDFPlayer.play(indxNum+69);  if  (escribeout == true){ escribeLienzo('7',wait);escribeLienzo('0',wait); } break;   
+          case 71:      myDFPlayer.play(indxNum+70);  if  (escribeout == true){ escribeLienzo('7',wait);escribeLienzo('1',wait); } break;   
+          case 72:      myDFPlayer.play(indxNum+71);  if  (escribeout == true){ escribeLienzo('7',wait);escribeLienzo('2',wait); } break;   
+          case 73:      myDFPlayer.play(indxNum+72);  if  (escribeout == true){ escribeLienzo('7',wait);escribeLienzo('3',wait); } break;   
+          case 74:      myDFPlayer.play(indxNum+73);  if  (escribeout == true){ escribeLienzo('7',wait);escribeLienzo('4',wait); } break;   
+          case 75:      myDFPlayer.play(indxNum+74);  if  (escribeout == true){ escribeLienzo('7',wait);escribeLienzo('5',wait); } break;   
+          case 76:      myDFPlayer.play(indxNum+75);  if  (escribeout == true){ escribeLienzo('7',wait);escribeLienzo('6',wait); } break;   
+          case 77:      myDFPlayer.play(indxNum+76);  if  (escribeout == true){ escribeLienzo('7',wait);escribeLienzo('7',wait); } break;   
+          case 78:      myDFPlayer.play(indxNum+77);  if  (escribeout == true){ escribeLienzo('7',wait);escribeLienzo('8',wait); } break;   
+          case 79:      myDFPlayer.play(indxNum+78);  if  (escribeout == true){ escribeLienzo('7',wait);escribeLienzo('9',wait); } break;   
+          case 80:      myDFPlayer.play(indxNum+79);  if  (escribeout == true){ escribeLienzo('8',wait);escribeLienzo('0',wait); } break;   
+          case 81:      myDFPlayer.play(indxNum+80);  if  (escribeout == true){ escribeLienzo('8',wait);escribeLienzo('1',wait); } break;   
+          case 82:      myDFPlayer.play(indxNum+81);  if  (escribeout == true){ escribeLienzo('8',wait);escribeLienzo('2',wait); } break;   
+          case 83:      myDFPlayer.play(indxNum+82);  if  (escribeout == true){ escribeLienzo('8',wait);escribeLienzo('3',wait); } break;   
+          case 84:      myDFPlayer.play(indxNum+83);  if  (escribeout == true){ escribeLienzo('8',wait);escribeLienzo('4',wait); } break;   
+          case 85:      myDFPlayer.play(indxNum+84);  if  (escribeout == true){ escribeLienzo('8',wait);escribeLienzo('5',wait); } break;   
+          case 86:      myDFPlayer.play(indxNum+85);  if  (escribeout == true){ escribeLienzo('8',wait);escribeLienzo('6',wait); } break;   
+          case 87:      myDFPlayer.play(indxNum+86);  if  (escribeout == true){ escribeLienzo('8',wait);escribeLienzo('7',wait); } break;   
+          case 88:      myDFPlayer.play(indxNum+87);  if  (escribeout == true){ escribeLienzo('8',wait);escribeLienzo('8',wait); } break;   
+          case 89:      myDFPlayer.play(indxNum+88);  if  (escribeout == true){ escribeLienzo('8',wait);escribeLienzo('9',wait); } break;   
+          case 90:      myDFPlayer.play(indxNum+89);  if  (escribeout == true){ escribeLienzo('9',wait);escribeLienzo('0',wait); } break;   
+          case 91:      myDFPlayer.play(indxNum+90);  if  (escribeout == true){ escribeLienzo('9',wait);escribeLienzo('1',wait); } break;   
+          case 92:      myDFPlayer.play(indxNum+91);  if  (escribeout == true){ escribeLienzo('9',wait);escribeLienzo('2',wait); } break;   
+          case 93:      myDFPlayer.play(indxNum+92);  if  (escribeout == true){ escribeLienzo('9',wait);escribeLienzo('3',wait); } break;   
+          case 94:      myDFPlayer.play(indxNum+93);  if  (escribeout == true){ escribeLienzo('9',wait);escribeLienzo('4',wait); } break;   
+          case 95:      myDFPlayer.play(indxNum+94);  if  (escribeout == true){ escribeLienzo('9',wait);escribeLienzo('5',wait); } break;   
+          case 96:      myDFPlayer.play(indxNum+95);  if  (escribeout == true){ escribeLienzo('9',wait);escribeLienzo('6',wait); } break;   
+          case 97:      myDFPlayer.play(indxNum+96);  if  (escribeout == true){ escribeLienzo('9',wait);escribeLienzo('7',wait); } break;   
+          case 98:      myDFPlayer.play(indxNum+97);  if  (escribeout == true){ escribeLienzo('9',wait);escribeLienzo('8',wait); } break;   
+          case 99:      myDFPlayer.play(indxNum+98);  if  (escribeout == true){ escribeLienzo('9',wait);escribeLienzo('9',wait); } break;   
+          case 100:     myDFPlayer.play(indxNum+99);  if  (escribeout == true){ escribeLienzo('1',wait);escribeLienzo('0',wait);escribeLienzo('0',wait); } break;   
     }
-    escribeLienzo(' ',wait);
+    if  (escribeout == true){ escribeLienzo(' ',wait);}
 }
 
 
@@ -872,45 +899,48 @@ void resetScreenCondicional(){
 }
 
 void dibujaBienvenida(){
-     
-    int pixelsx[100]= {6,7,8,4,5,9,10,3,11, 2, 12, 2,5,9,12 , 1,13, 1,7,13};
-    int pixelsy[100]= {0,0,0,1,1,1,1, 2,2,  3, 3,  4,4,4,4 ,  5,5  ,6,6,6 };
 
-    int pixelsxd[100]= {1,13, 1,4,5,6,7,8,9,10,13 , 2,5,9,12, 2,6,7,8,12 , 3,11 , 4,5,9,10,  6,7,8};
-    int pixelsyd[100]= {0,0,  1,1,1,1,1,1,1,1, 1  , 2,2,2,2,  3,3,3,3,3  , 4,4  , 5,5,5,5 ,  6,6,6};
-    
-    int16_t j;   
-    for(j=0; j<20; j++) {       
-          matrix.drawPixel( pixelsx[j],pixelsy[j] +1, HIGH);  
-          matrix.write(); // Send bitmap to display
-          delay(30);
-    }
-    for(j=0; j<29; j++) {       
-          matrix.drawPixel( pixelsxd[j] +64 ,pixelsyd[j], HIGH);  
-          matrix.write(); // Send bitmap to display
-          delay(30);
-    }
+          if ( resetdebouncedone == false ) {
+              
+              resetdebouncedone = true;
+              int pixelsx[100]= {6,7,8,4,5,9,10,3,11, 2, 12, 2,5,9,12 , 1,13, 1,7,13};
+              int pixelsy[100]= {0,0,0,1,1,1,1, 2,2,  3, 3,  4,4,4,4 ,  5,5  ,6,6,6 };
+          
+              int pixelsxd[100]= {1,13, 1,4,5,6,7,8,9,10,13 , 2,5,9,12, 2,6,7,8,12 , 3,11 , 4,5,9,10,  6,7,8};
+              int pixelsyd[100]= {0,0,  1,1,1,1,1,1,1,1, 1  , 2,2,2,2,  3,3,3,3,3  , 4,4  , 5,5,5,5 ,  6,6,6};
+              
+              int16_t j;   
+              for(j=0; j<20; j++) {       
+                    matrix.drawPixel( pixelsx[j],pixelsy[j] +1, HIGH);  
+                    matrix.write(); // Send bitmap to display
+                    delay(30);
+              }
+              for(j=0; j<29; j++) {       
+                    matrix.drawPixel( pixelsxd[j] +64 ,pixelsyd[j], HIGH);  
+                    matrix.write(); // Send bitmap to display
+                    delay(30);
+              }
+          
+              for(j=0; j<20; j++) {       
+                    matrix.drawPixel( pixelsx[j] + 48 ,pixelsy[j] +1, HIGH);  
+                    matrix.write(); // Send bitmap to display
+                    delay(30);
+              }
+              for(j=0; j<29; j++) {       
+                    matrix.drawPixel( pixelsxd[j] +112 ,pixelsyd[j], HIGH);  
+                    matrix.write(); // Send bitmap to display
+                    delay(30);
+              }
+              delay(1000);
+          
+              
 
-    for(j=0; j<20; j++) {       
-          matrix.drawPixel( pixelsx[j] + 48 ,pixelsy[j] +1, HIGH);  
-          matrix.write(); // Send bitmap to display
-          delay(30);
-    }
-    for(j=0; j<29; j++) {       
-          matrix.drawPixel( pixelsxd[j] +112 ,pixelsyd[j], HIGH);  
-          matrix.write(); // Send bitmap to display
-          delay(30);
-    }
-    delay(1000);
-
-    
-    mainTime();
-    necesitaResetScreen=true;
-    
+              necesitaResetScreen=true;
+        
+        }
 }
 
 void setearPantalla(){
-         
          
          matrix.setIntensity(0);      // Use a value between 0 and 15 for brightness
          matrix.setPosition(0, 0, 0);    matrix.setPosition(1, 1, 0);    matrix.setPosition(2, 2, 0);    matrix.setPosition(3, 3, 0);    matrix.setPosition(4, 4, 0);    matrix.setPosition(5, 5, 0);    matrix.setPosition(6, 6, 0);    matrix.setPosition(7, 7, 0);
@@ -973,6 +1003,7 @@ String  getSHora(DateTime date){
 
 
 void mainTime(){
+    //Serial.println(F("mainTime"));
     DateTime now;
     String sfecha;
     String shora;
@@ -996,27 +1027,43 @@ void mainTime(){
          
         muestraHoraActual(shora, smes );
         
-        tiempoAnterior=millis();
-        
-        while(millis()-tiempoAnterior <= periodo){  //si ha transcurrido el periodo programado de 1 segundo refresca la pantall
-              //No hace nada PUEDE USAR UN SKEDULER AQUI
-              if(shora == " 02:51:00" && Alarma1 == true){
-                   myDFPlayer.play(457);
-                   Alarma1 = false;
-              }
-              if(shora == " 02:40:00"){
-                   myDFPlayer.play(457);
-              }
-              if(shora == " 02:41:00"){
-                   myDFPlayer.play(443);
-              }
-              if(shora == " 02:42:00"){
-                   myDFPlayer.play(443);
-              }
-              
-        }          
       
     }    
+}
+
+void mainTimeMod(){
+    //Serial.println(F("mainTimeMod"));
+    DateTime now;
+    String sfecha;
+    String shora;
+    String smes;
+    unsigned long tiempoAnterior = millis();
+
+    int periodo = 1000;  // tiempo que esta el LED en alto y bajo
+    resetScreen();  
+   
+    now = rtc.now(); //Obtiene la fecha y hora del RTC
+              
+    sfecha = getSFecha(now);
+    shora  = getSHora(now);
+    smes   = getMes(now);
+  
+    PosxPF = 0;
+        
+    muestraFechaActual(sfecha);
+         
+    muestraHoraActual(shora, smes );
+        
+    shora.trim();
+
+    String shora2  =  shora.substring(0, 2);
+    String sminuto = shora.substring(3, 5);;
+    
+    playNumerosConvertido(shora2.toInt() ,false);
+    delay(1400);
+    playNumerosConvertido(sminuto.toInt() ,false);
+    delay(1400);
+        
 }
 
 void muestraFechaActual(String sfecha){
@@ -1063,13 +1110,39 @@ void escribeLienzo(char cletra, int idelay){
 void blink() {
   muestraHora = false;
   funcionTeclasAvance = 0; lenguajeFrases = 2;  necesitaResetScreen = true;  esEspaniol = true; primerCambioFuncion= true;
-  dibujaBienvenida();
-  //PosxPF = 0; matrix.fillScreen(LOW);  matrix.write();
-  //myDFPlayer.pause();
+  
+ 
+  //dibujaBienvenida();
       
   sumando1= 0;
   sumando2= 0;
   operador=' ';
   countmas= 0;
   detienePlayer = true;
+  teclasdireccionesactivas = false;
+  //resetScreenCondicional();
 }
+
+void setTeclaActual(String skeynow) {
+    teclaAnterior = teclaActual;
+    teclaActual = skeynow;
+}
+
+void evualuaDobleTecla() {
+  Serial.println(F("evualuaDobleTecla"));
+  if(  teclaActual == "H"   ){
+      if( teclaAnterior == teclaActual ){  
+           mainTimeMod();
+      }
+  }
+  
+  if(  teclaActual == "<"   ){
+       Serial.println(F("teclaActual == < "));
+      if( letrasmayusculas == true ){  
+           letrasmayusculas = false;
+      }else{
+           letrasmayusculas = true;
+      }
+  }
+
+}  
